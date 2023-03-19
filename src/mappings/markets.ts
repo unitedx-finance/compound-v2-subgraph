@@ -4,11 +4,12 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts/index'
 import { Market, Comptroller } from '../types/schema'
 // PriceOracle is valid from Comptroller deployment until block 8498421
-import { PriceOracle } from '../types/cREP/PriceOracle'
+import { PriceOracle } from '../types/xMADA/PriceOracle'
 // PriceOracle2 is valid from 8498422 until present block (until another proxy upgrade)
-import { PriceOracle2 } from '../types/cREP/PriceOracle2'
-import { ERC20 } from '../types/cREP/ERC20'
-import { CToken } from '../types/cREP/CToken'
+import { PriceOracle2 } from '../types/xMADA/PriceOracle2'
+import { ERC20 } from '../types/xMADA/ERC20'
+import { XToken } from '../types/xMADA/XToken'
+import { XErc20 } from '../types/xMADA/XErc20'
 
 import {
   exponentToBigDecimal,
@@ -18,9 +19,8 @@ import {
   zeroBD,
 } from './helpers'
 
-let cUSDCAddress = '0x39aa39c021dfbae8fac545936693ac917d5e7563'
-let cETHAddress = '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5'
-let daiAddress = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359'
+let cUSDCAddress = '0x3C6702e19618Be3a279762EAb6cB5701CfBd6C11'
+let cMADAAddress = '0xA8E43774EaC1c45F70DC34d9fFE66d34eD1d4234'
 
 // Used for all cERC20 contracts
 function getTokenPrice(
@@ -105,32 +105,34 @@ function getUSDCpriceETH(blockNumber: i32): BigDecimal {
 
 export function createMarket(marketAddress: string): Market {
   let market: Market
-  let contract = CToken.bind(Address.fromString(marketAddress))
+  // let contract = XToken.bind(Address.fromString(marketAddress))
+  let contract = XErc20.bind(Address.fromString(marketAddress))
 
   // It is CETH, which has a slightly different interface
-  if (marketAddress == cETHAddress) {
+  if (marketAddress == cMADAAddress) {
     market = new Market(marketAddress)
     market.underlyingAddress = Address.fromString(
       '0x0000000000000000000000000000000000000000',
     )
     market.underlyingDecimals = 18
     market.underlyingPrice = BigDecimal.fromString('1')
-    market.underlyingName = 'Ether'
-    market.underlyingSymbol = 'ETH'
+    market.underlyingName = 'MilkADA'
+    market.underlyingSymbol = 'MADA'
 
     // It is all other CERC20 contracts
   } else {
     market = new Market(marketAddress)
+    //console.log('marketAddress:: ', marketAddress)
     market.underlyingAddress = contract.underlying()
     let underlyingContract = ERC20.bind(market.underlyingAddress as Address)
     market.underlyingDecimals = underlyingContract.decimals()
-    if (market.underlyingAddress.toHexString() != daiAddress) {
-      market.underlyingName = underlyingContract.name()
-      market.underlyingSymbol = underlyingContract.symbol()
-    } else {
-      market.underlyingName = 'Dai Stablecoin v1.0 (DAI)'
-      market.underlyingSymbol = 'DAI'
-    }
+    // if (market.underlyingAddress.toHexString() != daiAddress) {
+    //   market.underlyingName = underlyingContract.name()
+    //   market.underlyingSymbol = underlyingContract.symbol()
+    // } else {
+    //   market.underlyingName = 'Dai Stablecoin v1.0 (DAI)'
+    //   market.underlyingSymbol = 'DAI'
+    // }
     if (marketAddress == cUSDCAddress) {
       market.underlyingPriceUSD = BigDecimal.fromString('1')
     }
@@ -176,11 +178,11 @@ export function updateMarket(
   // Only updateMarket if it has not been updated this block
   if (market.accrualBlockNumber != blockNumber) {
     let contractAddress = Address.fromString(market.id)
-    let contract = CToken.bind(contractAddress)
+    let contract = XToken.bind(contractAddress)
     let usdPriceInEth = getUSDCpriceETH(blockNumber)
 
     // if cETH, we only update USD price
-    if (market.id == cETHAddress) {
+    if (market.id == cMADAAddress) {
       market.underlyingPriceUSD = market.underlyingPrice
         .div(usdPriceInEth)
         .truncate(market.underlyingDecimals)

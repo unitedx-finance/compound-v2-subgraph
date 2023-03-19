@@ -6,7 +6,6 @@ import {
   NewCloseFactor,
   NewCollateralFactor,
   NewLiquidationIncentive,
-  NewMaxAssets,
   NewPriceOracle,
 } from '../types/comptroller/Comptroller'
 
@@ -14,7 +13,7 @@ import { Market, Comptroller } from '../types/schema'
 import { mantissaFactorBD, updateCommonCTokenStats } from './helpers'
 
 export function handleMarketEntered(event: MarketEntered): void {
-  let market = Market.load(event.params.cToken.toHexString())
+  let market = Market.load(event.params.xToken.toHexString())
   let accountID = event.params.account.toHex()
   let cTokenStats = updateCommonCTokenStats(
     market.id,
@@ -29,7 +28,7 @@ export function handleMarketEntered(event: MarketEntered): void {
 }
 
 export function handleMarketExited(event: MarketExited): void {
-  let market = Market.load(event.params.cToken.toHexString())
+  let market = Market.load(event.params.xToken.toHexString())
   let accountID = event.params.account.toHex()
   let cTokenStats = updateCommonCTokenStats(
     market.id,
@@ -50,7 +49,7 @@ export function handleNewCloseFactor(event: NewCloseFactor): void {
 }
 
 export function handleNewCollateralFactor(event: NewCollateralFactor): void {
-  let market = Market.load(event.params.cToken.toHexString())
+  let market = Market.load(event.params.xToken.toHexString())
   market.collateralFactor = event.params.newCollateralFactorMantissa
     .toBigDecimal()
     .div(mantissaFactorBD)
@@ -64,11 +63,11 @@ export function handleNewLiquidationIncentive(event: NewLiquidationIncentive): v
   comptroller.save()
 }
 
-export function handleNewMaxAssets(event: NewMaxAssets): void {
-  let comptroller = Comptroller.load('1')
-  comptroller.maxAssets = event.params.newMaxAssets
-  comptroller.save()
-}
+// export function handleNewMaxAssets(event: NewMaxAssets): void {
+//   let comptroller = Comptroller.load('1')
+//   comptroller.maxAssets = event.params.newMaxAssets
+//   comptroller.save()
+// }
 
 export function handleNewPriceOracle(event: NewPriceOracle): void {
   let comptroller = Comptroller.load('1')
