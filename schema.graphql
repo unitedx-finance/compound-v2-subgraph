@@ -45,12 +45,12 @@ type Market @entity { # TODO rename to CToken, not market AND ALL OTHERS
     totalSupply: BigDecimal!
     "Underlying token address"
     underlyingAddress: Bytes!
-    "Underlying token name"
-    underlyingName: String!
+  #  "Underlying token name"
+  # underlyingName: String!
     "Underlying price of token in ETH (ex. 0.007 DAI)"
     underlyingPrice: BigDecimal!
-    "Underlying token symbol"
-    underlyingSymbol: String!
+  # "Underlying token symbol"
+  #  underlyingSymbol: String!
 
     # Fields that are not in compounds api
     "Block the market is updated to"

@@ -4,12 +4,12 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts/index'
 import { Market, Comptroller } from '../types/schema'
 // PriceOracle is valid from Comptroller deployment until block 8498421
-import { PriceOracle } from '../types/xMADA/PriceOracle'
+import { PriceOracle } from '../types/xUSDC/PriceOracle'
 // PriceOracle2 is valid from 8498422 until present block (until another proxy upgrade)
-import { PriceOracle2 } from '../types/xMADA/PriceOracle2'
-import { ERC20 } from '../types/xMADA/ERC20'
-import { XToken } from '../types/xMADA/XToken'
-import { XErc20 } from '../types/xMADA/XErc20'
+import { PriceOracle2 } from '../types/xUSDC/PriceOracle2'
+import { ERC20 } from '../types/xUSDC/ERC20'
+import { XToken } from '../types/xUSDC/XToken'
+import { XErc20 } from '../types/xUSDC/XErc20'
 
 import {
   exponentToBigDecimal,
@@ -19,8 +19,9 @@ import {
   zeroBD,
 } from './helpers'
 
-let cUSDCAddress = '0x3C6702e19618Be3a279762EAb6cB5701CfBd6C11'
-let cMADAAddress = '0xA8E43774EaC1c45F70DC34d9fFE66d34eD1d4234'
+let xUSDCAddress = '0x3C6702e19618Be3a279762EAb6cB5701CfBd6C11'
+let xMADAAddress = '0xA8E43774EaC1c45F70DC34d9fFE66d34eD1d4234'
+let oracle = '0x5972a461121a57FF964477858F91a8fd91B54Dc2'
 
 // Used for all cERC20 contracts
 function getTokenPrice(
@@ -30,7 +31,8 @@ function getTokenPrice(
   underlyingDecimals: i32,
 ): BigDecimal {
   let comptroller = Comptroller.load('1')
-  let oracleAddress = comptroller.priceOracle as Address
+  // let oracleAddress = comptroller.priceOracle as Address
+  let oracleAddress = Address.fromString(oracle)
   let underlyingPrice: BigDecimal
   let priceOracle1Address = Address.fromString('02557a5e05defeffd4cae6d83ea3d173b272c904')
 
@@ -69,7 +71,7 @@ function getTokenPrice(
   } else {
     let oracle1 = PriceOracle.bind(priceOracle1Address)
     underlyingPrice = oracle1
-      .getPrice(underlyingAddress)
+      .getUnderlyingPrice(underlyingAddress)
       .toBigDecimal()
       .div(mantissaFactorBD)
   }
@@ -79,7 +81,8 @@ function getTokenPrice(
 // Returns the price of USDC in eth. i.e. 0.005 would mean ETH is $200
 function getUSDCpriceETH(blockNumber: i32): BigDecimal {
   let comptroller = Comptroller.load('1')
-  let oracleAddress = comptroller.priceOracle as Address
+  // let oracleAddress = comptroller.priceOracle as Address
+  let oracleAddress = Address.fromString(oracle)
   let priceOracle1Address = Address.fromString('02557a5e05defeffd4cae6d83ea3d173b272c904')
   let USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48 '
   let usdPrice: BigDecimal
@@ -90,16 +93,17 @@ function getUSDCpriceETH(blockNumber: i32): BigDecimal {
     let mantissaDecimalFactorUSDC = 18 - 6 + 18
     let bdFactorUSDC = exponentToBigDecimal(mantissaDecimalFactorUSDC)
     usdPrice = oracle2
-      .getUnderlyingPrice(Address.fromString(cUSDCAddress))
+      .getUnderlyingPrice(Address.fromString(xUSDCAddress))
       .toBigDecimal()
       .div(bdFactorUSDC)
   } else {
     let oracle1 = PriceOracle.bind(priceOracle1Address)
     usdPrice = oracle1
-      .getPrice(Address.fromString(USDCAddress))
+      .getUnderlyingPrice(Address.fromString(USDCAddress))
       .toBigDecimal()
       .div(mantissaFactorBD)
   }
+
   return usdPrice
 }
 
@@ -108,33 +112,31 @@ export function createMarket(marketAddress: string): Market {
   // let contract = XToken.bind(Address.fromString(marketAddress))
   let contract = XErc20.bind(Address.fromString(marketAddress))
 
-  // It is CETH, which has a slightly different interface
-  if (marketAddress == cMADAAddress) {
+  // It is XMADA, which has a slightly different interface
+  if (
+    Address.fromString(marketAddress).toString() ==
+    Address.fromString(xMADAAddress).toString()
+  ) {
     market = new Market(marketAddress)
     market.underlyingAddress = Address.fromString(
       '0x0000000000000000000000000000000000000000',
     )
     market.underlyingDecimals = 18
     market.underlyingPrice = BigDecimal.fromString('1')
-    market.underlyingName = 'MilkADA'
-    market.underlyingSymbol = 'MADA'
+    // market.underlyingName = 'MilkADA'
+    // market.underlyingSymbol = 'MADA'
 
     // It is all other CERC20 contracts
   } else {
     market = new Market(marketAddress)
-    //console.log('marketAddress:: ', marketAddress)
     market.underlyingAddress = contract.underlying()
     let underlyingContract = ERC20.bind(market.underlyingAddress as Address)
     market.underlyingDecimals = underlyingContract.decimals()
-    // if (market.underlyingAddress.toHexString() != daiAddress) {
-    //   market.underlyingName = underlyingContract.name()
-    //   market.underlyingSymbol = underlyingContract.symbol()
-    // } else {
-    //   market.underlyingName = 'Dai Stablecoin v1.0 (DAI)'
-    //   market.underlyingSymbol = 'DAI'
-    // }
-    if (marketAddress == cUSDCAddress) {
+
+    if (marketAddress == xUSDCAddress) {
       market.underlyingPriceUSD = BigDecimal.fromString('1')
+      // market.underlyingName = underlyingContract.name()
+      // market.underlyingSymbol = underlyingContract.symbol()
     }
   }
 
@@ -181,8 +183,8 @@ export function updateMarket(
     let contract = XToken.bind(contractAddress)
     let usdPriceInEth = getUSDCpriceETH(blockNumber)
 
-    // if cETH, we only update USD price
-    if (market.id == cMADAAddress) {
+    // if xMADA, we only update USD price
+    if (market.id == xMADAAddress) {
       market.underlyingPriceUSD = market.underlyingPrice
         .div(usdPriceInEth)
         .truncate(market.underlyingDecimals)
@@ -195,7 +197,7 @@ export function updateMarket(
       )
       market.underlyingPrice = tokenPriceEth.truncate(market.underlyingDecimals)
       // if USDC, we only update ETH price
-      if (market.id != cUSDCAddress) {
+      if (market.id != xUSDCAddress) {
         market.underlyingPriceUSD = market.underlyingPrice
           .div(usdPriceInEth)
           .truncate(market.underlyingDecimals)
@@ -252,7 +254,7 @@ export function updateMarket(
     market.supplyRate = contract
       .borrowRatePerBlock()
       .toBigDecimal()
-      .times(BigDecimal.fromString('2102400'))
+      .times(BigDecimal.fromString('788000'))
       .div(mantissaFactorBD)
       .truncate(mantissaFactor)
 
@@ -265,11 +267,12 @@ export function updateMarket(
     } else {
       market.borrowRate = supplyRatePerBlock.value
         .toBigDecimal()
-        .times(BigDecimal.fromString('2102400'))
+        .times(BigDecimal.fromString('788000'))
         .div(mantissaFactorBD)
         .truncate(mantissaFactor)
     }
     market.save()
   }
+
   return market as Market
 }

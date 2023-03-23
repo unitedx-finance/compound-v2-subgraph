@@ -9,7 +9,7 @@ import {
   AccrueInterest,
   NewReserveFactor,
   NewMarketInterestRateModel,
-} from '../types/xMADA/XToken'
+} from '../types/xUSDC/XToken'
 import { AccountCToken, Market, Account } from '../types/schema'
 
 import { createMarket, updateMarket } from './markets'
@@ -336,6 +336,7 @@ export function handleNewMarketInterestRateModel(
 ): void {
   let marketID = event.address.toHex()
   let market = Market.load(marketID)
+
   if (market == null) {
     market = createMarket(marketID)
   }

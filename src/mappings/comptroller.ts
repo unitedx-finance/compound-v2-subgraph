@@ -8,6 +8,7 @@ import {
   NewLiquidationIncentive,
   NewPriceOracle,
 } from '../types/comptroller/Comptroller'
+import { log } from '@graphprotocol/graph-ts/index'
 
 import { Market, Comptroller } from '../types/schema'
 import { mantissaFactorBD, updateCommonCTokenStats } from './helpers'
@@ -76,5 +77,7 @@ export function handleNewPriceOracle(event: NewPriceOracle): void {
     comptroller = new Comptroller('1')
   }
   comptroller.priceOracle = event.params.newPriceOracle
+  log.info('NEW_ORACLE_TEST: {}', [comptroller.priceOracle.toString()])
+
   comptroller.save()
 }
