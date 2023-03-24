@@ -123,8 +123,8 @@ export function createMarket(marketAddress: string): Market {
     )
     market.underlyingDecimals = 18
     market.underlyingPrice = BigDecimal.fromString('1')
-    // market.underlyingName = 'MilkADA'
-    // market.underlyingSymbol = 'MADA'
+    market.underlyingName = 'MilkADA'
+    market.underlyingSymbol = 'MADA'
 
     // It is all other CERC20 contracts
   } else {
@@ -133,10 +133,13 @@ export function createMarket(marketAddress: string): Market {
     let underlyingContract = ERC20.bind(market.underlyingAddress as Address)
     market.underlyingDecimals = underlyingContract.decimals()
 
-    if (marketAddress == xUSDCAddress) {
+    if (
+      Address.fromString(marketAddress).toString() ==
+      Address.fromString(xUSDCAddress).toString()
+    ) {
       market.underlyingPriceUSD = BigDecimal.fromString('1')
-      // market.underlyingName = underlyingContract.name()
-      // market.underlyingSymbol = underlyingContract.symbol()
+      market.underlyingName = underlyingContract.name()
+      market.underlyingSymbol = underlyingContract.symbol()
     }
   }
 
