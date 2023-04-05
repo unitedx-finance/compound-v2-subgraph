@@ -8,9 +8,9 @@ dataSources:
     name: Comptroller
     network: 'Milkomeda C1 Devnet'
     source:
-      address: '0x1063cD9f7093b3DDa604480aE0310EB9C83913b0'
+      address: '0x27b3CCB02435b2FA21391Ec49330802b3429C50D'
       abi: Comptroller
-      startBlock: 10506106
+      startBlock: 10506140
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3

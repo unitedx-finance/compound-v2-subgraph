@@ -18,6 +18,7 @@ import {
   cTokenDecimalsBD,
   zeroBD,
 } from './helpers'
+import { loadOrCreateComptroller } from './comptroller'
 
 let xUSDCAddress = '0x3C6702e19618Be3a279762EAb6cB5701CfBd6C11'
 let xMADAAddress = '0xA8E43774EaC1c45F70DC34d9fFE66d34eD1d4234'
@@ -30,7 +31,7 @@ function getTokenPrice(
   underlyingAddress: Address,
   underlyingDecimals: i32,
 ): BigDecimal {
-  let comptroller = Comptroller.load('1')
+  let comptroller = loadOrCreateComptroller()
   // let oracleAddress = comptroller.priceOracle as Address
   let oracleAddress = Address.fromString(oracle)
   let underlyingPrice: BigDecimal
@@ -80,7 +81,7 @@ function getTokenPrice(
 
 // Returns the price of USDC in eth. i.e. 0.005 would mean ETH is $200
 function getUSDCpriceETH(blockNumber: i32): BigDecimal {
-  let comptroller = Comptroller.load('1')
+  let comptroller = loadOrCreateComptroller()
   // let oracleAddress = comptroller.priceOracle as Address
   let oracleAddress = Address.fromString(oracle)
   let priceOracle1Address = Address.fromString('02557a5e05defeffd4cae6d83ea3d173b272c904')
