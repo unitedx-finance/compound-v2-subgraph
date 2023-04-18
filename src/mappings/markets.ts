@@ -22,7 +22,6 @@ import { loadOrCreateComptroller } from './comptroller'
 
 let xUSDCAddress = '0x3C6702e19618Be3a279762EAb6cB5701CfBd6C11'
 let xMADAAddress = '0xA8E43774EaC1c45F70DC34d9fFE66d34eD1d4234'
-let oracle = '0x5972a461121a57FF964477858F91a8fd91B54Dc2'
 
 // Used for all cERC20 contracts
 function getTokenPrice(
@@ -32,10 +31,10 @@ function getTokenPrice(
   underlyingDecimals: i32,
 ): BigDecimal {
   let comptroller = loadOrCreateComptroller()
-  // let oracleAddress = comptroller.priceOracle as Address
-  let oracleAddress = Address.fromString(oracle)
+  let oracleAddress = comptroller.priceOracle as Address
+
   let underlyingPrice: BigDecimal
-  let priceOracle1Address = Address.fromString('02557a5e05defeffd4cae6d83ea3d173b272c904')
+  let priceOracle1Address = oracleAddress
 
   /* PriceOracle2 is used at the block the Comptroller starts using it.
    * see here https://etherscan.io/address/0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b#events
@@ -82,10 +81,11 @@ function getTokenPrice(
 // Returns the price of USDC in eth. i.e. 0.005 would mean ETH is $200
 function getUSDCpriceETH(blockNumber: i32): BigDecimal {
   let comptroller = loadOrCreateComptroller()
-  // let oracleAddress = comptroller.priceOracle as Address
-  let oracleAddress = Address.fromString(oracle)
-  let priceOracle1Address = Address.fromString('02557a5e05defeffd4cae6d83ea3d173b272c904')
-  let USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48 '
+  let oracleAddress = comptroller.priceOracle as Address
+
+  let priceOracle1Address = oracleAddress
+
+  let USDCAddress = '0x8c214Fa17D0167675C238F4d4142C4eEeC04f54f '
   let usdPrice: BigDecimal
 
   // See notes on block number if statement in getTokenPrices()
